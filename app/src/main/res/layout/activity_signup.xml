@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Signup">
+
+    <ImageView
+        android:layout_above="@id/tvSignup"
+        android:layout_marginBottom="10dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/logo"
+        android:layout_width="100dp"
+        android:layout_height="100dp" />
+
+    <TextView
+        android:id="@+id/tvSignup"
+        android:textColor="@color/black"
+        android:textStyle="italic|bold"
+        android:textSize="18dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/etEmailSignup"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="100dp"
+        android:text="You are Safe!!" />
+
+    <EditText
+        android:id="@+id/etEmailSignup"
+        android:hint="Email"
+        android:textColor="@color/black"
+        android:inputType="textEmailAddress"
+        android:ems="15"
+        android:padding="10dp"
+        android:layout_above="@id/etPassSignup"
+        android:layout_marginBottom="30dp"
+        android:layout_centerInParent="true"
+        android:maxLines="1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:id="@+id/etPassSignup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/etConfirmPassSignup"
+        android:layout_centerInParent="true"
+        android:ems="15"
+        android:layout_marginBottom="30dp"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:maxLines="1"
+        android:padding="10dp"
+        android:textColor="@color/black" />
+
+    <EditText
+        android:id="@+id/etConfirmPassSignup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/btnSignUp"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="80dp"
+        android:ems="15"
+        android:hint="Confirm Password"
+        android:inputType="textPassword"
+        android:maxLines="1"
+        android:padding="10dp"
+        android:textColor="@color/black" />
+
+    <Button
+        android:id="@+id/btnSignUp"
+        android:textColor="@color/black"
+        android:backgroundTint="@color/white"
+        android:textAllCaps="false"
+        android:textSize="20dp"
+        android:textStyle="bold|italic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="100dp"
+        android:text="Sign up" />
+
+    <TextView
+        android:id="@+id/tvAlreadyUser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="49dp"
+        android:text="Already a user? Sign in now." />
+
+</RelativeLayout>

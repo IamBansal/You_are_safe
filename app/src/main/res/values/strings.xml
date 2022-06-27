@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">You are Safe!!</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="what_we_do">\nThis app helps ensuring the safety of everyone and let their loved ones know about them in any kind of danger.\n\n\nWe will take contact numbers from you for emergency.\nWhen user will press the power button 3 times or shake the device, we will send a text message to the entered emergency contacts that you are in danger with your current location.\nWe will do the same every five minutes with your updated current location till you press the stop button in the application confirming that you are safe, and we will send a text message that you are safe.\nFor all this you have to give access to location adn allow us to make phone calls and send text message.</string>
+</resources>
