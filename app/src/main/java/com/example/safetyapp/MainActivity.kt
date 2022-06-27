@@ -9,6 +9,11 @@ import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import java.util.ArrayList
 
 class MainActivity : AppCompatActivity() {
@@ -20,12 +25,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var help : ImageView
     private lateinit var contactAdapter: ContactAdapter
     private lateinit var contactList: ArrayList<Item>
+    private lateinit var firebaseAuth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         toolbar = findViewById(R.id.toolbarM)
+        firebaseAuth = FirebaseAuth.getInstance()
 
         setSupportActionBar(toolbar)
         supportActionBar?.title = "You are safe!!"
@@ -40,22 +47,23 @@ class MainActivity : AppCompatActivity() {
         recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = LinearLayoutManager(applicationContext)
         recyclerView.adapter = contactAdapter
+        getContacts()
 
 
-        contactList.add(Item("Akshat", "Brother", "9871877325"))
-        contactList.add(Item("Shagun", "Sister", "9886777325"))
-        contactList.add(Item("Sunita", "Mother", "900077325"))
-        contactList.add(Item("Akshat", "Brother", "9871877325"))
-        contactList.add(Item("Akshat", "Brother", "9871877325"))
-        contactList.add(Item("Akshat", "Brother", "9871877325"))
-        contactList.add(Item("Akshat", "Brother", "9871877325"))
-        contactList.add(Item("Akshat", "Brother", "9871877325"))
-        contactList.add(Item("Akshat", "Brother", "9871877325"))
-        contactList.add(Item("Akshat", "Brother", "9871877325"))
-        contactList.add(Item("Akshat", "Brother", "9871877325"))
-        contactList.add(Item("Akshat", "Brother", "9871877325"))
-        contactList.add(Item("Akshat", "Brother", "9871877325"))
-        contactList.add(Item("Akshat", "Brother", "9871877325"))
+//        contactList.add(Item("Akshat", "Brother", "9871877325"))
+//        contactList.add(Item("Shagun", "Sister", "9886777325"))
+//        contactList.add(Item("Sunita", "Mother", "900077325"))
+//        contactList.add(Item("Akshat", "Brother", "9871877325"))
+//        contactList.add(Item("Akshat", "Brother", "9871877325"))
+//        contactList.add(Item("Akshat", "Brother", "9871877325"))
+//        contactList.add(Item("Akshat", "Brother", "9871877325"))
+//        contactList.add(Item("Akshat", "Brother", "9871877325"))
+//        contactList.add(Item("Akshat", "Brother", "9871877325"))
+//        contactList.add(Item("Akshat", "Brother", "9871877325"))
+//        contactList.add(Item("Akshat", "Brother", "9871877325"))
+//        contactList.add(Item("Akshat", "Brother", "9871877325"))
+//        contactList.add(Item("Akshat", "Brother", "9871877325"))
+//        contactList.add(Item("Akshat", "Brother", "9871877325"))
 
 
         addContact.setOnClickListener {
@@ -70,6 +78,22 @@ class MainActivity : AppCompatActivity() {
             stopMessages()
         }
 
+    }
+
+    private fun getContacts() {
+            FirebaseDatabase.getInstance().reference.child("UsersSafety").child(firebaseAuth.currentUser!!.uid).addValueEventListener(object :
+                ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    contactList.clear()
+                    for (dataSnaps in snapshot.children){
+                        val item = dataSnaps.getValue(Item::class.java)
+                        contactList.add(item!!)
+                    }
+                    contactAdapter.notifyDataSetChanged()
+                }
+                override fun onCancelled(error: DatabaseError) {
+                }
+            })
     }
 
     private fun stopMessages() {
