@@ -50,11 +50,19 @@
         <Button
             android:visibility="gone"
             android:backgroundTint="@color/red"
-            android:tag="gone"
             android:text="STOP"
             android:textSize="18dp"
             android:textStyle="italic|bold"
             android:id="@+id/btnStop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btnSend"
+            android:text="Send"
+            android:textSize="18dp"
+            android:textStyle="italic|bold"
+            android:backgroundTint="@color/hearty"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
@@ -69,11 +77,11 @@
 
     <LinearLayout
         android:id="@+id/ll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="10dp"
-        android:layout_width="match_parent"
-        android:orientation="vertical"
-        android:layout_height="wrap_content">
+        android:orientation="vertical">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabAddContact"
@@ -84,12 +92,12 @@
             android:src="@drawable/ic_baseline_add_24" />
 
         <TextView
-            android:text="Add an emergency contact"
-            android:layout_gravity="center"
-            android:textColor="@color/black"
-            android:layout_marginTop="15dp"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:text="Add an emergency contact"
+            android:textColor="@color/black" />
 
     </LinearLayout>
 
