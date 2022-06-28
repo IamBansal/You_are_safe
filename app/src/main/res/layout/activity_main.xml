@@ -50,7 +50,7 @@
         <Button
             android:visibility="gone"
             android:backgroundTint="@color/red"
-            android:text="STOP"
+            android:text="STOP Message"
             android:textSize="18dp"
             android:textStyle="italic|bold"
             android:id="@+id/btnStop"
@@ -59,7 +59,7 @@
 
         <Button
             android:id="@+id/btnSend"
-            android:text="Send"
+            android:text="Send Message"
             android:textSize="18dp"
             android:textStyle="italic|bold"
             android:backgroundTint="@color/hearty"

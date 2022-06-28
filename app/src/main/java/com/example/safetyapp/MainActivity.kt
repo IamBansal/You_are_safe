@@ -5,6 +5,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
@@ -27,6 +31,9 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.math.sqrt
 
 class MainActivity : AppCompatActivity() {
 
@@ -41,7 +48,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var firebaseAuth: FirebaseAuth
     private var latitude: Any? = null
     private var longitude: Any? = null
-    private lateinit var fusedLocationProviderClient : FusedLocationProviderClient
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+
+    private var sensorManager: SensorManager? = null
+    private var acceleration = 0f
+    private var currentAcceleration = 0f
+    private var lastAcceleration = 0f
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,20 +92,57 @@ class MainActivity : AppCompatActivity() {
         }
 
         send.setOnClickListener {
-                sendMessage()
+            sendMessage()
         }
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         getCurrentLocation()
 
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        Objects.requireNonNull(sensorManager)!!.registerListener(
+            sensorListener,
+            sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+            SensorManager.SENSOR_DELAY_NORMAL
+        )
+
+    }
+
+    //To check for shake device.
+    private val sensorListener : SensorEventListener = object : SensorEventListener {
+        override fun onSensorChanged(p0: SensorEvent?) {
+            val x = p0!!.values[0]
+            val y = p0.values[1]
+            val z = p0.values[2]
+            lastAcceleration = currentAcceleration
+            currentAcceleration = sqrt((x*x + y*y + z*z).toDouble()).toFloat()
+            val delta : Float = currentAcceleration - lastAcceleration
+            acceleration = acceleration * 0.9f + delta
+            if (acceleration > 25) {
+                Toast.makeText(applicationContext, "Shake detected..\nSending the emergency message.", Toast.LENGTH_SHORT).show()
+                sendMessage()
+            }
+        }
+        override fun onAccuracyChanged(p0: Sensor?, p1: Int) {}
+    }
+
+    override fun onResume() {
+        sensorManager?.registerListener(sensorListener, sensorManager!!.getDefaultSensor(
+            Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL
+        )
+        super.onResume()
+    }
+
+    override fun onPause() {
+        sensorManager!!.unregisterListener(sensorListener)
+        super.onPause()
     }
 
     //To get the location
     private fun getCurrentLocation() {
 
-        if (checkPermissions()){
+        if (checkPermissions()) {
 
-            if (isLocationEnabled()){
+            if (isLocationEnabled()) {
                 //To check Permissions
                 if (ActivityCompat.checkSelfPermission(
                         this,
@@ -113,9 +163,9 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 //To fetch the location
-                fusedLocationProviderClient.lastLocation.addOnCompleteListener(this){ task ->
-                    val location : Location ? = task.result
-                    if (location == null){
+                fusedLocationProviderClient.lastLocation.addOnCompleteListener(this) { task ->
+                    val location: Location? = task.result
+                    if (location == null) {
                         Toast.makeText(this, "Null", Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show()
@@ -136,8 +186,11 @@ class MainActivity : AppCompatActivity() {
 
     //To check if location is enabled or not.
     private fun isLocationEnabled(): Boolean {
-        val locationManager : LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        val locationManager: LocationManager =
+            getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
+            LocationManager.NETWORK_PROVIDER
+        )
     }
 
     //To request the permissions.
@@ -149,7 +202,8 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.ACCESS_FINE_LOCATION,
             ),
-            PERMISSION_REQUEST_ACCESS_LOCATION)
+            PERMISSION_REQUEST_ACCESS_LOCATION
+        )
     }
 
     //To show that permissions are checked.
@@ -159,7 +213,7 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSION_REQUEST_ACCESS_LOCATION){
+        if (requestCode == PERMISSION_REQUEST_ACCESS_LOCATION) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Granted", Toast.LENGTH_SHORT).show()
                 getCurrentLocation()
@@ -171,9 +225,14 @@ class MainActivity : AppCompatActivity() {
 
     //To check if permissions are granted or not.
     private fun checkPermissions(): Boolean {
-        if (ActivityCompat.checkSelfPermission(this,
-            Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             return true
         }
         return false
@@ -193,7 +252,7 @@ class MainActivity : AppCompatActivity() {
             null,
             null
         )
-        Toast.makeText(this, "Message sent.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Safe Message sent.", Toast.LENGTH_SHORT).show()
         stop.visibility = View.GONE
     }
 
@@ -205,7 +264,7 @@ class MainActivity : AppCompatActivity() {
         obj.sendTextMessage(
             "9278609008",
             null,
-            "Hey Bengalan!\nText from 'You are safe!!' app.\nI AM IN DANGER.\nMy location is $url",
+            "Hey!\nText from 'You are safe!!' app.\nI AM IN DANGER.\nMy location is $url",
             null,
             null
         )
