@@ -14,6 +14,8 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.provider.Settings
 import android.telephony.SmsManager
+import android.util.Log
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -401,6 +403,31 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("No") { _, _ -> }
             .create()
             .show()
+    }
+
+    //For long press action.
+    override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            Log.d("test", "Long Press!!")
+            sendMessage()
+            return true
+        }
+        return super.onKeyLongPress(keyCode, event)
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if(keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            event?.startTracking()
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN){
+            return true
+        }
+        return super.onKeyUp(keyCode, event)
     }
 
 }
