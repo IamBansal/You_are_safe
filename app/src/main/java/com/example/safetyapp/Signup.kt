@@ -71,6 +71,7 @@ class Signup : AppCompatActivity() {
 
                 firebaseAuth?.createUserWithEmailAndPassword(emailText, passwordText)
                     ?.addOnCompleteListener { task ->
+                        progressBar.dismiss()
                         if (task.isSuccessful) {
                             Toast.makeText(
                                 this,

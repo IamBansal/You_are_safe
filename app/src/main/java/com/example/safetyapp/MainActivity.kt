@@ -14,10 +14,13 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.provider.Settings
 import android.telephony.SmsManager
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
@@ -55,7 +58,6 @@ class MainActivity : AppCompatActivity() {
     private var currentAcceleration = 0f
     private var lastAcceleration = 0f
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -92,7 +94,27 @@ class MainActivity : AppCompatActivity() {
         }
 
         send.setOnClickListener {
-            sendMessage()
+            FirebaseDatabase.getInstance().reference.child("UsersSafety")
+                .child(firebaseAuth.currentUser!!.uid)
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        if (snapshot.exists()) {
+                            sendMessage()
+                        } else {
+                            val alert = AlertDialog.Builder(this@MainActivity)
+                            alert.setTitle("No Emergency Contact Found!!")
+                                .setMessage("Add at least one number in the emergency contact for sending the message.")
+                                .setPositiveButton("Okay") { _, _ -> }
+                                .create()
+                                .show()
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        TODO("Not yet implemented")
+                    }
+
+                })
         }
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
@@ -108,32 +130,48 @@ class MainActivity : AppCompatActivity() {
     }
 
     //To check for shake device.
-    private val sensorListener : SensorEventListener = object : SensorEventListener {
+    private val sensorListener: SensorEventListener = object : SensorEventListener {
         override fun onSensorChanged(p0: SensorEvent?) {
             val x = p0!!.values[0]
             val y = p0.values[1]
             val z = p0.values[2]
             lastAcceleration = currentAcceleration
-            currentAcceleration = sqrt((x*x + y*y + z*z).toDouble()).toFloat()
-            val delta : Float = currentAcceleration - lastAcceleration
+            currentAcceleration = sqrt((x * x + y * y + z * z).toDouble()).toFloat()
+            val delta: Float = currentAcceleration - lastAcceleration
             acceleration = acceleration * 0.9f + delta
             if (acceleration > 25) {
-                Toast.makeText(applicationContext, "Shake detected..\nSending the emergency message.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    applicationContext,
+                    "Shake detected..\nSending the emergency message.",
+                    Toast.LENGTH_SHORT
+                ).show()
                 sendMessage()
             }
         }
+
         override fun onAccuracyChanged(p0: Sensor?, p1: Int) {}
     }
 
     override fun onResume() {
-        sensorManager?.registerListener(sensorListener, sensorManager!!.getDefaultSensor(
-            Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL
+        sensorManager?.registerListener(
+            sensorListener, sensorManager!!.getDefaultSensor(
+                Sensor.TYPE_ACCELEROMETER
+            ), SensorManager.SENSOR_DELAY_NORMAL
         )
         super.onResume()
     }
 
     override fun onPause() {
-        sensorManager!!.unregisterListener(sensorListener)
+        //To detect shake when app running in background.
+        sensorManager?.registerListener(
+            sensorListener, sensorManager!!.getDefaultSensor(
+                Sensor.TYPE_ACCELEROMETER
+            ), SensorManager.SENSOR_DELAY_NORMAL
+        )
+
+        //To unregister the sensor when app running in background.
+//        sensorManager!!.unregisterListener(sensorListener)
+
         super.onPause()
     }
 
@@ -168,7 +206,7 @@ class MainActivity : AppCompatActivity() {
                     if (location == null) {
                         Toast.makeText(this, "Null", Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show()
+//                        Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show()
                         longitude = location.longitude
                         latitude = location.latitude
                     }
@@ -245,14 +283,17 @@ class MainActivity : AppCompatActivity() {
     //To send a message on stopping the messages.
     private fun stopMessages() {
         val obj = SmsManager.getDefault()
-        obj.sendTextMessage(
-            "9278609008",
-            null,
-            "I am Safe!\nThanks for your concern :)",
-            null,
-            null
-        )
-        Toast.makeText(this, "Safe Message sent.", Toast.LENGTH_SHORT).show()
+        for (i in contactList) {
+            obj.sendTextMessage(
+                i.number,
+                null,
+                "I am Safe!\nThanks for your concern :)",
+                null,
+                null
+            )
+        }
+        Toast.makeText(applicationContext, "Safe Message sent.", Toast.LENGTH_SHORT)
+            .show()
         stop.visibility = View.GONE
     }
 
@@ -261,14 +302,16 @@ class MainActivity : AppCompatActivity() {
 //        val url = "http://maps.google.com/maps?q=28.857556%2C77.085029"
         val url = "http://maps.google.com/maps?q=$latitude,$longitude"
         val obj = SmsManager.getDefault()
-        obj.sendTextMessage(
-            "9278609008",
-            null,
-            "Hey!\nText from 'You are safe!!' app.\nI AM IN DANGER.\nMy location is $url",
-            null,
-            null
-        )
-        Toast.makeText(this, "Message sent.", Toast.LENGTH_SHORT).show()
+        for (i in contactList) {
+            obj.sendTextMessage(
+                i.number,
+                null,
+                "Hey!\nText from 'You are safe!!' app.\nI AM IN DANGER.\nMy location is $url",
+                null,
+                null
+            )
+        }
+        Toast.makeText(applicationContext, "Emergency Message sent.", Toast.LENGTH_SHORT).show()
         stop.visibility = View.VISIBLE
     }
 
@@ -295,6 +338,69 @@ class MainActivity : AppCompatActivity() {
     override fun onBackPressed() {
         super.onBackPressed()
         finishAffinity()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.items, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.logout -> {
+                logout()
+                return true
+            }
+            R.id.deleteAcc -> {
+                deleteAccount()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun logout() {
+        val alert = AlertDialog.Builder(this)
+        alert.setTitle("Logout Requested!!")
+            .setMessage("You sure you want to logout?")
+            .setPositiveButton("Yes, Logout!!") { _, _ ->
+                FirebaseAuth.getInstance().signOut()
+                startActivity(
+                    Intent(
+                        this,
+                        Login::class.java
+                    ).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                )
+            }
+            .setNegativeButton("No") { _, _ -> }
+            .create()
+            .show()
+    }
+
+    private fun deleteAccount() {
+        val alert = AlertDialog.Builder(this)
+        alert.setTitle("Delete Account Requested!!")
+            .setMessage("You sure you want to delete your account?\nYou will not be able to recover your data once you delete account.")
+            .setPositiveButton("Yes, Delete!!") { _, _ ->
+                FirebaseAuth.getInstance().currentUser?.delete()
+                    ?.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Toast.makeText(this, "Account deleted.", Toast.LENGTH_SHORT).show()
+                            startActivity(
+                                Intent(
+                                    this,
+                                    Login::class.java
+                                ).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                            )
+                        } else {
+                            Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    }
+            }
+            .setNegativeButton("No") { _, _ -> }
+            .create()
+            .show()
     }
 
 }

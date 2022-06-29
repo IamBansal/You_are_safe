@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:orientation="vertical"
+    tools:menu="@menu/items"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
@@ -29,7 +30,7 @@
             <ImageView
                 android:id="@+id/ivHelp"
                 android:layout_gravity="end|center"
-                android:layout_marginEnd="35dp"
+                android:layout_marginEnd="15dp"
                 android:src="@drawable/ic_baseline_help_outline_24"
                 android:layout_alignParentEnd="true"
                 android:layout_width="wrap_content"
